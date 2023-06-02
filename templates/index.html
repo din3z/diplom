@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Графики</title>
+    <!-- Подключение библиотеки Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    {% for metric, graphJSON in graphJSON.items() %}
+        <div id="{{ metric }}"></div>
+        <script>
+            // Функция для обновления данных графика
+            function updateChart(metric) {
+                $.ajax({
+                    url: '/update_chart',
+                    type: 'POST',
+                    data: {metric: metric},
+                    success: function(response) {
+                        // Обновление данных графика с использованием Plotly.js
+                        var graphData = JSON.parse(response);
+                        Plotly.update('{{ metric }}', graphData.data, graphData.layout);
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+            }
+
+            // Отображение графика с использованием Plotly.js
+            var graphJSON = {{ graphJSON|safe }};
+            Plotly.newPlot('{{ metric }}', graphJSON.data, graphJSON.layout);
+
+            // Обновление графика каждые 15 секунд
+            setInterval(function() {
+                updateChart('{{ metric }}');
+            }, 15000);
+        </script>
+    {% endfor %}
+</body>
+</html>
